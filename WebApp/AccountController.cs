@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace WebApp
 {
@@ -20,16 +23,24 @@ namespace WebApp
         [HttpGet]
         public ValueTask<Account> Get()
         {
-            return _service.LoadOrCreateAsync(null /*TODO 3: Get user id from cookie*/);
+            Response.Redirect("/api/register");
+            return _service.LoadOrCreateAsync(Request.Cookies["userId"]);
         }
         
-        //TODO 6: Get user id from cookie
-        //TODO 7: Endpoint should works only for users with "Admin" Role
         [Authorize]
         [HttpGet]
-        public Account GetByInternalId([FromQuery] int internalId)
+        public Account GetByInternalId()
         {
-            return _service.GetFromCache(internalId);
+            Int64.TryParse(Request.Cookies["userExternalId"], out var internalId);
+            Response.Redirect("/api/register");
+            var account = _service.GetFromCache(internalId);
+            if (account.Role != "Admin")
+            {
+                Response.StatusCode = 400;
+                return null;
+            }
+
+            return account;
         }
 
         [Authorize]

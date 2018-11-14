@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApp
@@ -17,6 +21,20 @@ namespace WebApp
             services.AddSingleton<IAccountDatabase, AccountDatabaseStub>();
             services.AddSingleton<IAccountCache, AccountCache>();
             services.AddSignalR();
+            
+            services.ConfigureApplicationCookie(options => {
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnRedirectToLogin = ctx =>
+                    {
+                        ctx.Response.Redirect("/api/login");
+                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    }
+                };
+
+            });
+            services.AddAuthorization();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

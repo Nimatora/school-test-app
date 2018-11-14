@@ -12,16 +12,15 @@ namespace WebApp
         {
             _db = db;
         }
-        
+
         [HttpPost("sign-in")]
         public async Task Login(string userName)
         {
             var account = await _db.FindByUserNameAsync(userName);
-            if (account != null)
-            {
-                //TODO 1: Generate cookie for user 'userName' with external id
-            }
-            //TODO 2: return 404 not found if user not found
+            if (account == null)
+                Response.StatusCode = 404;
+            else
+                Response.Cookies.Append("userExternalId", account.ExternalId);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 
 namespace WebApp
 {
@@ -6,6 +7,8 @@ namespace WebApp
     {
         private readonly ConcurrentDictionary<long, Account> _itemsById = new ConcurrentDictionary<long, Account>();
         private readonly ConcurrentDictionary<string, Account> _itemsByGuid = new ConcurrentDictionary<string, Account>();
+
+        public Action<Account> OnAccountAdd { set; private get; }
 
         public bool TryGetValue(long accountId, out Account item)
         {            
@@ -19,6 +22,7 @@ namespace WebApp
 
         public void AddOrUpdate(Account account)
         {
+            OnAccountAdd(account);
             _itemsById.AddOrUpdate(account.InternalId, account, (key, item) => account);
             _itemsByGuid.AddOrUpdate(account.ExternalId, account, (key, item) => account);
         }

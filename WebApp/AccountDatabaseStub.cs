@@ -9,6 +9,8 @@ namespace WebApp
     {
         private readonly Dictionary<string, Account> _accounts = new Dictionary<string, Account>();
 
+        public Action<Account> OnAccountAdd { set; private get; }
+
         public AccountDatabaseStub()
         {
             _accounts["alice"] = new Account
@@ -33,11 +35,12 @@ namespace WebApp
             {
                 if (!_accounts.TryGetValue(id, out var account))
                 {
-                    account = new Account()
+                    account = new Account
                     {
                         ExternalId = id
                     };
                     _accounts[id] = account;
+                    OnAccountAdd(account);
                 }   
                 return Task.FromResult(account.Clone());
             }
@@ -50,12 +53,13 @@ namespace WebApp
                 var account = _accounts.FirstOrDefault(x => x.Value.InternalId == id).Value; 
                 if (account == null)
                 {
-                    account = new Account()
+                    account = new Account
                     {
                         InternalId = id,
                         ExternalId = Guid.NewGuid().ToString()
                     };
                     _accounts[account.ExternalId] = account;
+                    OnAccountAdd(account);
                 }   
                 return Task.FromResult(account.Clone());
             }
